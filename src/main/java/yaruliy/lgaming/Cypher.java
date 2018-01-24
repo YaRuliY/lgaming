@@ -1,6 +1,8 @@
 package yaruliy.lgaming;
+
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Component;
+
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -15,7 +17,9 @@ import java.security.spec.X509EncodedKeySpec;
 public class Cypher {
     private PrivateKey privateKey;
     private PublicKey publicKey;
-    public Cypher(){}
+
+    public Cypher() {
+    }
 
     public String sign(String message) throws SignatureException {
         try {
@@ -42,11 +46,10 @@ public class Cypher {
         } catch (Exception ex) {
             throw new SignatureException(ex);
         }
-
     }
 
     @PostConstruct
-    public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException{
+    public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException {
 //        byte[] privKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
 //        String temp = new String(privKeyByteArray);
 //        String privKeyPEM = temp.replace("-----BEGIN PRIVATE KEY-----\n", "");

@@ -41,16 +41,10 @@ public class Agent {
         in.close();
 
         System.out.println("Response Code : " + responseCode);
-
-        String signature = null;
-        Map<String, List<String>> map = conion.getHeaderFields();
-        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
-            System.out.println("Key : " + entry.getKey() + " , Value : " + entry.getValue());
-            if(entry.getKey().equals("PayLogic-Signature")) signature = entry.getValue().get(0);
-        }
         printXML(response.toString());
 
-        System.out.println("Verify: " + cypher.verify(response.toString(), signature));
+        String signature = conion.getHeaderField("PayLogic-Signature");
+        System.out.println("Verify: " + cypher.verify(response.toString().trim(), signature.trim()));
     }
 
     private void printXML(String response){
