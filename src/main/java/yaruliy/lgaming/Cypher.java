@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 
 @Component
 public class Cypher {
@@ -19,11 +20,12 @@ public class Cypher {
     public String sign(String message) throws SignatureException {
         try {
             Signature sign = Signature.getInstance("SHA1withRSA");
+            System.out.println("Private Key Format: " + privateKey.getFormat() + "\nAlgorithm: " + privateKey.getAlgorithm());
             sign.initSign(privateKey);
             sign.update(message.getBytes("UTF-8"));
             String s = new String(Base64.encodeBase64(sign.sign()), "UTF-8");
             System.out.println("----------------Result in Sing-----------------");
-            System.out.println(s);
+            System.out.println(s.substring(s.length() - 30, s.length()));
             System.out.println("----------------------------------------------------");
             return s;
         } catch (Exception ex) {
@@ -44,14 +46,22 @@ public class Cypher {
     }
 
     @PostConstruct
-    public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException {
-        byte[] privKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.pem").toURI()));
-        String temp = new String(privKeyByteArray);
-        String privKeyPEM = temp.replace("-----BEGIN PRIVATE KEY-----\n", "");
-        privKeyPEM = privKeyPEM.replace("-----END PRIVATE KEY-----", "");
+    public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException{
+//        byte[] privKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
+//        String temp = new String(privKeyByteArray);
+//        String privKeyPEM = temp.replace("-----BEGIN PRIVATE KEY-----\n", "");
+//        privKeyPEM = privKeyPEM.replace("-----END PRIVATE KEY-----", "");
+//
+//        byte[] decoded = new Base64().decode(privKeyPEM);
+//        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
+//        this.privateKey = KeyFactory.getInstance("RSA").generatePrivate(spec);
+        byte[] privateKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
+        PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        this.privateKey = kf.generatePrivate(privateKeySpec);
 
-        byte[] decoded = new Base64().decode(privKeyPEM);
-        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
-        this.privateKey = KeyFactory.getInstance("RSA").generatePrivate(spec);
+        byte[] publicKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("public_key.der").toURI()));
+        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyByteArray);
+        this.publicKey = kf.generatePublic(publicKeySpec);
     }
 }

@@ -8,6 +8,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.security.SignatureException;
+import java.util.List;
+import java.util.Map;
 
 @Component
 public class Agent {
@@ -18,32 +20,42 @@ public class Agent {
     public void send(Request request) throws IOException, SignatureException {
         HttpsURLConnection conion = (HttpsURLConnection) new URL(URL).openConnection();
         conion.setRequestMethod("POST");
-        //conion.setRequestProperty("Accept-Language", "en-US,en;q=0.5");
-        conion.setRequestProperty("Content-Type", "application/soap+xml; charset=utf-8");
 
-        String s = request.XMLRequestAsString();
+        String XMLContent = request.XMLRequestAsString();
         System.out.println("----------------Request as String-----------------");
-        System.out.println(s);
+        System.out.println(XMLContent);
         System.out.println("----------------------------------------------------");
-        conion.setRequestProperty("PayLogic-Signature", cypher.sign(request.getBody()));
+        conion.setRequestProperty("PayLogic-Signature", cypher.sign(XMLContent));
 
         conion.setDoOutput(true);
         OutputStream os = conion.getOutputStream();
-        os.write(s.getBytes("UTF-8"));
+        os.write(XMLContent.getBytes("UTF-8"));
         os.close();
 
+        String inputLine;
         int responseCode = conion.getResponseCode();
-        System.out.println("Response Code : " + responseCode);
 
         BufferedReader in = new BufferedReader(new InputStreamReader(conion.getInputStream()));
-        String inputLine;
         StringBuilder response = new StringBuilder();
-
         while((inputLine = in.readLine()) != null){ response.append(inputLine); }
         in.close();
 
+        System.out.println("Response Code : " + responseCode);
+
+        String signature = null;
+        Map<String, List<String>> map = conion.getHeaderFields();
+        for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+            System.out.println("Key : " + entry.getKey() + " , Value : " + entry.getValue());
+            if(entry.getKey().equals("PayLogic-Signature")) signature = entry.getValue().get(0);
+        }
+        printXML(response.toString());
+
+        System.out.println("Verify: " + cypher.verify(response.toString(), signature));
+    }
+
+    private void printXML(String response){
         System.out.println("Output: [");
-        System.out.println("\t" + response.toString());
+        System.out.println("\t" + response);
         System.out.println("]");
     }
 }
