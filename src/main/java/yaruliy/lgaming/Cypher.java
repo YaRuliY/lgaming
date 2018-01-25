@@ -30,33 +30,30 @@ public class Cypher {
             System.out.println(encoded.substring(encoded.length() - 50, encoded.length()));
             System.out.println("--------------------------------------------------------------------------\n");
             return encoded;
-        } catch (Exception ex) {
-            throw new SignatureException(ex);
         }
+        catch (Exception ex) { throw new SignatureException(ex); }
     }
 
     public boolean verify(String message, String signature) throws SignatureException {
         try {
             Signature sign = Signature.getInstance("SHA1withRSA");
-            sign.initVerify(publicKey);
-            sign.update(message.getBytes());
-            byte[] decoded = org.apache.tomcat.util.codec.binary.Base64.decodeBase64(signature.getBytes("UTF-8"));
-            System.out.println("Decoded: " + new String(decoded));
+            sign.initVerify(this.publicKey);
+            sign.update(message.getBytes("UTF-8"));
+            //byte[] decoded = org.apache.tomcat.util.codec.binary.Base64.decodeBase64(signature.getBytes("UTF-8"));
+            byte[] decoded = Base64.getDecoder().decode(signature.getBytes("UTF-8"));
             return sign.verify(decoded);
-        } catch (Exception ex) {
-            throw new SignatureException(ex);
         }
+        catch (Exception ex) { throw new SignatureException(ex); }
     }
 
     @PostConstruct
     public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException {
         byte[] privateKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        this.privateKey = kf.generatePrivate(privateKeySpec);
+        this.privateKey = KeyFactory.getInstance("RSA").generatePrivate(privateKeySpec);
 
         byte[] publicKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("public_key.der").toURI()));
         X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyByteArray);
-        this.publicKey = kf.generatePublic(publicKeySpec);
+        this.publicKey = KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
     }
 }

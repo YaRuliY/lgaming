@@ -8,8 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.URL;
 import java.security.SignatureException;
-import java.util.List;
-import java.util.Map;
 
 @Component
 public class Agent {
@@ -43,12 +41,11 @@ public class Agent {
         System.out.println("Response Code: " + responseCode);
         printXML(response.toString());
 
-        //---------------------------------------------------------------------------------------
         String signature = conion.getHeaderField("PayLogic-Signature");
-        System.out.println("\n-----------------------------------Signature from header----------------------------------------");
+        System.out.println("\n----------------------Signature from header----------------------------------------");
         System.out.print(signature.substring(0, 50) + " ... ");
         System.out.println(signature.substring(signature.length() - 50, signature.length()));
-        System.out.println("--------------------------------------------------------------------------------------\n");
+        System.out.println("---------------------------------------------------------------------------------\n");
         System.out.println("Verify: " + cypher.verify(response.toString().trim(), signature.trim()));
     }
 
