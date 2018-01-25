@@ -1,8 +1,5 @@
 package yaruliy.lgaming;
-
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Component;
-
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -12,14 +9,13 @@ import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
 
 @Component
 public class Cypher {
     private PrivateKey privateKey;
     private PublicKey publicKey;
-
-    public Cypher() {
-    }
+    public Cypher(){}
 
     public String sign(String message) throws SignatureException {
         try {
@@ -27,11 +23,13 @@ public class Cypher {
             System.out.println("Private Key Format: " + privateKey.getFormat() + "\nAlgorithm: " + privateKey.getAlgorithm());
             sign.initSign(privateKey);
             sign.update(message.getBytes("UTF-8"));
-            String s = new String(Base64.encodeBase64(sign.sign()), "UTF-8");
-            System.out.println("----------------Result in Sing-----------------");
-            System.out.println(s.substring(s.length() - 30, s.length()));
-            System.out.println("----------------------------------------------------");
-            return s;
+            //String encoded = new String(org.apache.tomcat.util.codec.binary.Base64.encodeBase64(sign.sign()), "UTF-8");
+            String encoded = new String(Base64.getEncoder().encode(sign.sign()), "UTF-8");
+            System.out.println("\n---------------------------Result in Sing----------------------------");
+            System.out.print(encoded.substring(0, 50) + " ... ");
+            System.out.println(encoded.substring(encoded.length() - 50, encoded.length()));
+            System.out.println("--------------------------------------------------------------------------\n");
+            return encoded;
         } catch (Exception ex) {
             throw new SignatureException(ex);
         }
@@ -41,8 +39,10 @@ public class Cypher {
         try {
             Signature sign = Signature.getInstance("SHA1withRSA");
             sign.initVerify(publicKey);
-            sign.update(message.getBytes("UTF-8"));
-            return sign.verify(Base64.decodeBase64(signature.getBytes("UTF-8")));
+            sign.update(message.getBytes());
+            byte[] decoded = org.apache.tomcat.util.codec.binary.Base64.decodeBase64(signature.getBytes("UTF-8"));
+            System.out.println("Decoded: " + new String(decoded));
+            return sign.verify(decoded);
         } catch (Exception ex) {
             throw new SignatureException(ex);
         }
@@ -50,14 +50,6 @@ public class Cypher {
 
     @PostConstruct
     public void construct() throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, URISyntaxException {
-//        byte[] privKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
-//        String temp = new String(privKeyByteArray);
-//        String privKeyPEM = temp.replace("-----BEGIN PRIVATE KEY-----\n", "");
-//        privKeyPEM = privKeyPEM.replace("-----END PRIVATE KEY-----", "");
-//
-//        byte[] decoded = new Base64().decode(privKeyPEM);
-//        PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(decoded);
-//        this.privateKey = KeyFactory.getInstance("RSA").generatePrivate(spec);
         byte[] privateKeyByteArray = Files.readAllBytes(Paths.get(ClassLoader.getSystemResource("private_key.der").toURI()));
         PKCS8EncodedKeySpec privateKeySpec = new PKCS8EncodedKeySpec(privateKeyByteArray);
         KeyFactory kf = KeyFactory.getInstance("RSA");

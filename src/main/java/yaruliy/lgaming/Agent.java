@@ -22,9 +22,9 @@ public class Agent {
         conion.setRequestMethod("POST");
 
         String XMLContent = request.XMLRequestAsString();
-        System.out.println("----------------Request as String-----------------");
+        System.out.println("\n--------------------------------Request as String---------------------------------");
         System.out.println(XMLContent);
-        System.out.println("----------------------------------------------------");
+        System.out.println("------------------------------------------------------------------------------------\n");
         conion.setRequestProperty("PayLogic-Signature", cypher.sign(XMLContent));
 
         conion.setDoOutput(true);
@@ -40,10 +40,15 @@ public class Agent {
         while((inputLine = in.readLine()) != null){ response.append(inputLine); }
         in.close();
 
-        System.out.println("Response Code : " + responseCode);
+        System.out.println("Response Code: " + responseCode);
         printXML(response.toString());
 
+        //---------------------------------------------------------------------------------------
         String signature = conion.getHeaderField("PayLogic-Signature");
+        System.out.println("\n-----------------------------------Signature from header----------------------------------------");
+        System.out.print(signature.substring(0, 50) + " ... ");
+        System.out.println(signature.substring(signature.length() - 50, signature.length()));
+        System.out.println("--------------------------------------------------------------------------------------\n");
         System.out.println("Verify: " + cypher.verify(response.toString().trim(), signature.trim()));
     }
 

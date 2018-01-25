@@ -13,8 +13,4 @@ public class Request{
                 "</request>";
         return this.data;
     }
-
-    public String getBody(){
-        return "<verify service=\"" + serviceNumber + "\" account=\"12345\"/>";
-    }
 }
